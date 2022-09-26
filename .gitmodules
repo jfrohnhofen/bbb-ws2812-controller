@@ -1,0 +1,3 @@
+[submodule "third_party/am335x_pru_package"]
+	path = third_party/am335x_pru_package
+	url = git@github.com:jfrohnhofen/am335x_pru_package
