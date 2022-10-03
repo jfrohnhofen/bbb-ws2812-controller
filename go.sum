@@ -1,0 +1,4 @@
+github.com/aamcrae/pru v0.0.0-20210616054607-87d49ad011ce h1:iMejtPLh8brsQd0Ag+xKFJuvnwwL4RYBHPzJJPxLW3w=
+github.com/aamcrae/pru v0.0.0-20210616054607-87d49ad011ce/go.mod h1:syQFPUt1l0gL6ahTzkrfy90u+/N3RE1lfoilPOp9Kiw=
+golang.org/x/sys v0.0.0-20210616045830-e2b7044e8c71 h1:X/2sJAybVknnUnV7AD2HdT6rm2p5BP6eH2j+igduWgk=
+golang.org/x/sys v0.0.0-20210616045830-e2b7044e8c71/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
