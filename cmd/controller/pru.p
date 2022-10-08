@@ -4,7 +4,7 @@
 #define UINT32 4
 
 #define NUM_CHANNELS 6
-#define RESET_CYCLES 10000
+#define RESET_CYCLES 200000
 
 #define CTRL_BASE_ADDR 0x24000
 #define CTRL_CONTROL_REG 0x00
