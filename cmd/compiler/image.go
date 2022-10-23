@@ -39,13 +39,13 @@ func GetPixel(img *image.RGBA, x, y float64) color.RGBA {
 	x3 := img.RGBAAt(xInt+1, yInt+1)
 
 	return color.RGBA{
-		R: gammaCorrect(interploate(x0.R, x1.R, x2.R, x3.R, xFrac, yFrac)),
-		G: gammaCorrect(interploate(x0.G, x1.G, x2.G, x3.G, xFrac, yFrac)),
-		B: gammaCorrect(interploate(x0.B, x1.B, x2.B, x3.B, xFrac, yFrac)),
+		R: gammaCorrection(interploate(x0.R, x1.R, x2.R, x3.R, xFrac, yFrac)),
+		G: gammaCorrection(interploate(x0.G, x1.G, x2.G, x3.G, xFrac, yFrac)),
+		B: gammaCorrection(interploate(x0.B, x1.B, x2.B, x3.B, xFrac, yFrac)),
 	}
 }
 
-func gammaCorrect(x uint8) uint8 {
+func gammaCorrection(x uint8) uint8 {
 	return []uint8{
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
