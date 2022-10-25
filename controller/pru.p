@@ -118,12 +118,12 @@ next_buffer:
     // load address of next buffer
     lbbo    buf_addr, buf_addr, NEXT_ADDR_OFFSET, UINT32
 
-    // check exit condition
-    qbeq    exit, buf_addr, ones
-
     // set params of next buffer
     lbbo    end_addr, buf_addr, END_ADDR_OFFSET, UINT32
     add     data_addr, buf_addr, DATA_OFFSET
+
+    // check exit condition
+    qbeq    exit, end_addr, zeros
 
     jmp     loop_bits
 

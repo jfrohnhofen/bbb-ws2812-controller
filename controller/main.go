@@ -33,6 +33,7 @@ const (
 
 	frameDataOffset = 12
 	bytesPerLed     = 3
+	bitsPerLed      = 24
 
 	numChannelsPerDataPin = 6
 	numDataPins           = 8
@@ -176,7 +177,11 @@ func outputFrame(input string, frameIdx uint32) error {
 	pruTimeout := time.Duration(numBits)*perBitTime + resetTime
 
 	for _, buf := range buffers {
-		fillPruBuffer(&frame, buf)
+		binary.LittleEndian.PutUint32(buf.data[pruEndAddrOffset:], 0x0000_0000)
+		binary.LittleEndian.PutUint32(buf.data[pruNextAddrOffset:], buf.next.addr)
+		if len(frame.data) > 0 {
+			fillPruBuffer(&frame, buf)
+		}
 	}
 
 	prus.Unit(1).RunAt(0)
@@ -184,18 +189,22 @@ func outputFrame(input string, frameIdx uint32) error {
 
 	buf := &buffers[0]
 	for prus.Unit(1).IsRunning() && time.Since(start) < pruTimeout {
-		if len(frame.data) > 0 && binary.LittleEndian.Uint32(buf.data[pruEndAddrOffset:]) == 0 {
+		if len(frame.data) > 0 && binary.LittleEndian.Uint32(buf.data[pruEndAddrOffset:]) == 0x0000_0000 {
 			fillPruBuffer(&frame, *buf)
 			buf = buf.next
 		}
 		time.Sleep(10 * time.Microsecond)
 	}
 
+	if len(frame.data) > 0 {
+		return fmt.Errorf("controller has not written all data")
+	}
+
 	if prus.Unit(1).IsRunning() {
 		return fmt.Errorf("PRU timed out")
 	}
 	for _, buf := range buffers {
-		if binary.LittleEndian.Uint32(buf.data[pruEndAddrOffset:]) != 0 {
+		if binary.LittleEndian.Uint32(buf.data[pruEndAddrOffset:]) != 0x0000_0000 {
 			return fmt.Errorf("PRU has not written all data")
 		}
 	}
@@ -235,20 +244,14 @@ func loadFrame(input string, frameIdx uint32) (Frame, error) {
 
 func fillPruBuffer(frame *Frame, buf PruBuffer) {
 	numBits := (buf.size - pruDataOffset) / numChannelsPerDataPin
-	nextAddr := buf.next.addr
 	if bitsLeft := uint32(len(frame.data)) / numChannelsPerDataPin; bitsLeft <= numBits {
 		numBits = bitsLeft
-		nextAddr = 0xffff_ffff
 	}
-
+	numBits = numBits / bitsPerLed * bitsPerLed
 	size := numBits * numChannelsPerDataPin
 	endAddr := buf.addr + pruDataOffset + size - numChannelsPerDataPin
-	if numBits == 0 {
-		endAddr = 0x0000_0000
-	}
-	copy(buf.data[pruDataOffset:], frame.data[:size])
 	binary.LittleEndian.PutUint32(buf.data[pruEndAddrOffset:], endAddr)
-	binary.LittleEndian.PutUint32(buf.data[pruNextAddrOffset:], nextAddr)
+	copy(buf.data[pruDataOffset:], frame.data[:size])
 	frame.data = frame.data[size:]
 }
 
