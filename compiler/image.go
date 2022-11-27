@@ -43,9 +43,9 @@ func GetPixel(img *image.RGBA, x, y float64) color.RGBA {
 	b := interploate(x0.B, x1.B, x2.B, x3.B, xFrac, yFrac)
 
 	return color.RGBA{
-		R: gammaCorrectAdafruit(r),
-		G: gammaCorrectAdafruit(g),
-		B: gammaCorrectAdafruit(b),
+		R: gammaCorrectFastled(r),
+		G: gammaCorrectFastled(g),
+		B: gammaCorrectFastled(b),
 	}
 }
 
@@ -70,7 +70,7 @@ func gammaCorrectAdafruit(x uint8) uint8 {
 	}[x]
 }
 
-func gammaCorretFastled(x uint8) uint8 {
+func gammaCorrectFastled(x uint8) uint8 {
 	return [256]uint8{
 		0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 4, 4, 4, 4,
