@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
 	"log"
 	"os/exec"
@@ -33,17 +34,18 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to open PRU device: %s\n", err)
 	}
-	pru0 := prus.Unit(0)
-	pru1 := prus.Unit(0)
 
-	if err := pru0.LoadAt(pru1Code, 0x00); err != nil {
+	pru0 := prus.Unit(0)
+	if err := pru0.LoadAt(pru0Code, 0x00); err != nil {
 		log.Fatalf("Failed to load PRU0 code: %s\n", err)
 	}
 
+	pru1 := prus.Unit(1)
 	if err := pru1.LoadAt(pru1Code, 0x00); err != nil {
 		log.Fatalf("Failed to load PRU1 code: %s\n", err)
 	}
 
+	binary.LittleEndian.PutUint32(pru0.Ram, 0)
 	pru0.RunAt(0)
 	pru1.RunAt(0)
 
@@ -51,6 +53,37 @@ func main() {
 	for (pru0.IsRunning() || pru1.IsRunning()) && time.Since(start) < time.Second {
 		time.Sleep(10 * time.Microsecond)
 	}
+
+	if pru0.IsRunning() {
+		log.Println("PRU0 is still busy")
+		return
+	}
+	count0 := binary.LittleEndian.Uint32(pru0.Ram[0:]) - 4
+	fmt.Println("PRU0 cycles:", count0)
+
+	samples := pru0.Ram[4 : 4*4*28+4]
+
+	for burst := 0; burst < 4; burst++ {
+		for ch := 0; ch < 6; ch++ {
+			fmt.Printf("CH%d ", ch)
+			for sample := 0; sample < 4*28; sample++ {
+				if samples[burst*28*4+sample]&(1<<ch) == 0 {
+					fmt.Print("_")
+				} else {
+					fmt.Print("\u25AE")
+				}
+			}
+			fmt.Println()
+		}
+		fmt.Println()
+	}
+
+	if pru1.IsRunning() {
+		log.Println("PRU1 is still busy")
+	}
+	count1 := binary.LittleEndian.Uint32(pru1.Ram[0:])
+	sum1 := binary.LittleEndian.Uint32(pru1.Ram[4:]) - 4*count1
+	fmt.Println("PRU1 time: count", count1, "sum", sum1, "avg", float64(sum1)/float64(count1))
 
 	fmt.Println("Done")
 }
